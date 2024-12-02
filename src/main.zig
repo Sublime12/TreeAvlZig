@@ -2,21 +2,46 @@
 //! you are building an executable. If you are making a library, the convention
 //! is to delete this file and start with root.zig instead.
 const std = @import("std");
+const tree_avl = @import("TreeAvl.zig");
+const TreeAvl = tree_avl.TreeAvl;
+const Check = std.heap.Check;
+const print = std.debug.print;
+const panic = std.debug.panic;
+
+fn cmpFun(a: usize, b: usize) bool {
+    return a > b;
+}
 
 pub fn main() !void {
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    var gpa1 = std.heap.GeneralPurposeAllocator(.{}){};
+    defer  {
+        const check = gpa1.deinit();
+        if (check == Check.leak) {
+            panic("There is a leak", .{});
+        } else
+            print("No leak detected", .{});
+    }
+    const gpa = gpa1.allocator();
+    // const allocator = std.heap.c_allocator;
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    var tree = TreeAvl(usize, cmpFun, 0).init(gpa);
+    defer tree.deinit();
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    // const two = @as(i32, 2);
+    // const three = @as(i32, 3);
+    // const four = @as(i32, 4);
+    // try tree.add(&two);
+    // try tree.add(&three);
+    // try tree.add(&four);
 
-    try bw.flush(); // Don't forget to flush!
+    for (0..500000) |i| {
+        try tree.add(&i);
+    }
+
+    print("Bonjour\n", .{});
+    // print(tree.)
+    // _ = tree;
 }
 
 test "simple test" {
